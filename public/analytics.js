@@ -71,10 +71,10 @@ export var Analytics = class Analytics {
     var data;
     data = {
       user_id: this.user_id,
-      type: 1, // Time Spent Event
       time: time,
       report_interval: this.report_interval,
-      place: this.place
+      place: this.place,
+      url: window.location.href
     };
     return this.sendReport(data);
   }
@@ -99,7 +99,7 @@ export var Analytics = class Analytics {
     var data;
     data = {
       user_id: this.user_id,
-      href: window.location.href
+      url: window.location.href
     };
     // type: 2 # First Interaction
     // host: window.location.host

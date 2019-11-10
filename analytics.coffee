@@ -58,10 +58,10 @@ export class Analytics
   sendEvent: (time) ->
     data =
       user_id: @user_id
-      type: 1 # Time Spent Event
       time: time
       report_interval: @report_interval
       place: @place
+      url: window.location.href
     @sendReport data
 
   restartClock: ()->
@@ -80,7 +80,7 @@ export class Analytics
   sendUserTiming: (timingValue)->
     data =
       user_id: @user_id
-      href: window.location.href
+      url: window.location.href
       # type: 2 # First Interaction
       # host: window.location.host
       # path: window.location.pathname
