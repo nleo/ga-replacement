@@ -18,10 +18,10 @@ export class Analytics
 
     # Page visibility listeners
     document.addEventListener('visibilitychange', @visibilityChange.bind(this), false)
-    document.addEventListener('webkitvisibilitychange', @visibilityChange.bind(this), false)
+    window.addEventListener('blur', @setIdle.bind(this))
 
   visibilityChange: () ->
-    if document.hidden || document.webkitHidden
+    if document.hidden
       @setIdle()
 
   trigger: () ->

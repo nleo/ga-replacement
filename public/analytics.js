@@ -21,11 +21,11 @@ export var Analytics = class Analytics {
     window.addEventListener('scroll', _.throttle(this.trigger.bind(this), 500), false);
     // Page visibility listeners
     document.addEventListener('visibilitychange', this.visibilityChange.bind(this), false);
-    document.addEventListener('webkitvisibilitychange', this.visibilityChange.bind(this), false);
+    window.addEventListener('blur', this.setIdle.bind(this));
   }
 
   visibilityChange() {
-    if (document.hidden || document.webkitHidden) {
+    if (document.hidden) {
       return this.setIdle();
     }
   }
