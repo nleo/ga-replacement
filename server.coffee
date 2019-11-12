@@ -36,7 +36,7 @@ app.get '/', (req, res) =>
 
 app.post '/visits', (req, res) =>
   body = req.body
-  console.log 'Visit: ',  body
+  console.log 'Visit: ', body
   visits_stream = clickhouse.insert('INSERT INTO visits').stream()
   await visits_stream.writeRow [new Date(), body.userId, body.url]
   await visits_stream.exec()
@@ -44,7 +44,7 @@ app.post '/visits', (req, res) =>
 
 app.post '/pings', (req, res) =>
   body = req.body
-  console.log 'Ping: ',  body
+  console.log 'Ping: ', body
   pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId, body.url]
   if pings_cache.length > 75
     flush_pings_cache()
