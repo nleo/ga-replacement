@@ -38,7 +38,7 @@ app.post '/visits', (req, res) =>
 app.post '/pings', (req, res) =>
   body = req.body
   console.log 'Ping: ',  body
-  pings_cache.push [new Date(), body.userId, body.time, body.pageTypeId, body.url]
+  pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId, body.url]
   if pings_cache.length > 75
     flush_pings_cache()
   res.send 'OK'

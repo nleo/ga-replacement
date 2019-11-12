@@ -59,7 +59,7 @@ export class Analytics
     data =
       userId: @userId
       time: time
-      # report_interval: @reportInterval
+      reportInterval: @reportInterval
       pageTypeId: @pageTypeId
       url: window.location.href
     @sendData data, 'pings'
