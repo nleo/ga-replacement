@@ -23,7 +23,6 @@ Include JS script to your page:
   <script type="module">
     import {Analytics} from 'http://localhost:3334/analytics.js';
     if (gon.user){
-      //console.log(gon.user)
       let content_id;
       if (gon.place === 'content')
         content_id = 1

@@ -1,5 +1,5 @@
 export class Analytics
-  constructor: (@report_url, @user_id, @place, @debug=false) ->
+  constructor: (@baseUrl, @userId, @pageTypeId, @debug=false) ->
     @reportInterval = 15
     @idleTimeout    = 30
     @started = false
@@ -53,16 +53,22 @@ export class Analytics
   clock: () ->
     @clockTime += 1;
     if @clockTime > 0 && (@clockTime % @reportInterval == 0)
-      @sendEvent(@clockTime);
+      @sendPing(@clockTime);
 
-  sendEvent: (time) ->
+  sendPing: (time) ->
     data =
-      user_id: @user_id
+      userId: @userId
       time: time
-      report_interval: @report_interval
-      place: @place
+      # report_interval: @reportInterval
+      pageTypeId: @pageTypeId
       url: window.location.href
-    @sendReport data
+    @sendData data, 'pings'
+
+  sendVisit: ()->
+    data =
+      userId: @userId
+      url: window.location.href
+    @sendData data, 'visits'
 
   restartClock: ()->
     @stopped = false
@@ -72,22 +78,12 @@ export class Analytics
   startLogger: ()->
     # Calculate seconds from start to first interaction
     currentTime = new Date()
-    diff = currentTime - @startTime
     @started = true
-    @sendUserTiming(diff)
+    @sendVisit()
     @clockTimer = setInterval(@clock.bind(this), 1000)
 
-  sendUserTiming: (timingValue)->
-    data =
-      user_id: @user_id
-      url: window.location.href
-      # type: 2 # First Interaction
-      # host: window.location.host
-      # path: window.location.pathname
-    @sendReport data
-
-  sendReport: (data) ->
-    fetch @report_url, {
+  sendData: (data, endpoint) ->
+    fetch "#{@baseUrl}/#{endpoint}", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8'

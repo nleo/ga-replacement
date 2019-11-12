@@ -1,10 +1,10 @@
 CREATE TABLE pings
 (
-  created_at DateTime,
-  user_id UInt32,
-  recoded_time UInt16,
-  place_id UInt16,
-  url String
+  CreatedAt DateTime,
+  UserId UInt32,
+  RecodedTime UInt16,
+  PageTypeId UInt16,
+  Url String
 )
 ENGINE = MergeTree()
 PARTITION BY (toYYYYMM(created_at), user_id)
