@@ -29,7 +29,6 @@ app.get '/', (req, res) =>
 app.post '/visits', (req, res) =>
   body = req.body
   console.log 'Visit: ',  body
-  console.log body
   visits_stream = clickhouse.insert('INSERT INTO visits').stream()
   await visits_stream.writeRow [new Date(), body.userId, body.url]
   await visits_stream.exec()

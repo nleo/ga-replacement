@@ -6,7 +6,6 @@ export class Analytics
     @stopped = false
     @turnedOff = false
     @clockTime = 0
-    @startTime = new Date()
     @clockTimer = null
     @idleTimer = null
 
@@ -76,8 +75,6 @@ export class Analytics
     @clockTimer = setInterval(@clock.bind(this), 1000)
 
   startLogger: ()->
-    # Calculate seconds from start to first interaction
-    currentTime = new Date()
     @started = true
     @sendVisit()
     @clockTimer = setInterval(@clock.bind(this), 1000)
@@ -91,7 +88,6 @@ export class Analytics
       body: JSON.stringify(data) }
 
   reset: ()->
-    @startTime = new Date()
     @clockTime = 0
     @started = false
     @stopped = false
