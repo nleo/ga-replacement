@@ -11,23 +11,27 @@ app.use(express.json());
 app.use(express.static('public'))
 
 pings_cache = []
-last_flush_pings_cache_at = null
+lastFlushPingsCacheAt = new Date()
 
-flush_pings_cache = () ->
-  last_flush_pings_cache_at = new Date()
-  console.log 'flush_pings_cache started'
+flushPingsCache = () ->
+  lastFlushPingsCacheAt = new Date()
+  console.log 'flushPingsCache started'
   if pings_cache.length > 0
     pings_stream = clickhouse.insert('INSERT INTO pings').stream()
     for ping in pings_cache
       await pings_stream.writeRow ping
     await pings_stream.exec()
-  pings_cache = []
+    pings_cache = []
 
-setInterval flush_pings_cache, 60000
+flushPingsCacheInterval = ()->
+  if (new Date() - lastFlushPingsCacheAt) > 59000
+    flushPingsCache()
+
+setInterval flushPingsCacheInterval, 60000
 
 onExit = () ->
   console.log "Exiting..."
-  await flush_pings_cache()
+  await flushPingsCache()
   console.log "Exit: done."
   process.exit()
 
@@ -47,7 +51,7 @@ app.post '/pings', (req, res) =>
   console.log 'Ping: ', body
   pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId, body.url]
   if pings_cache.length > 75
-    flush_pings_cache()
+    flushPingsCache()
   res.send 'OK'
 
 app.listen port, () =>
