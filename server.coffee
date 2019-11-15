@@ -87,18 +87,21 @@ app.post '/visits', (req, res) =>
 app.post '/pings', (req, res) =>
   body = req.body
   console.log 'Ping: ', body
-  pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId, body.url]
-  if pings_cache.length > 75
+  pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId,
+    body.courseId, body.url]
+  if pings_cache.length > 3
     flushPingsCache()
   res.send 'OK'
 
 # Returns user spend time in platform in seconds
-app.get '/time_spend/:user_id/:from/:to/:type', auth.connect(basic), (req, res) =>
+app.get '/time_spend/:user_id/:from/:to/:type/:course_id', auth.connect(basic), (req, res) =>
   sql = "select count(*) from pings where UserId = #{req.params.user_id}"
   sql += " AND CreatedAt >= toDateTime('#{req.params.from}')
            AND CreatedAt <= toDateTime('#{req.params.to}')"
-  if parseInt(req.params.type) != 0
+  if parseInt(req.params.type) > 0
     sql += " AND PageTypeId = #{req.params.type}"
+  if parseInt(req.params.course_id) > 0
+    sql += " AND CourseId = #{req.params.course_id}"
   rows = await clickhouse.query(sql).toPromise()
   res.json {time: rows[0]['count()']*15}
 

@@ -1,6 +1,6 @@
 export class Analytics
-  constructor: (@baseUrl, @userId, @pageTypeId, @debug=false) ->
-    @reportInterval = 15
+  constructor: (@baseUrl, @userId, @pageTypeId, @courseId, @debug=false) ->
+    @reportInterval = 3
     @idleTimeout    = 30
     @started = false
     @stopped = false
@@ -60,6 +60,7 @@ export class Analytics
       time: time
       reportInterval: @reportInterval
       pageTypeId: @pageTypeId
+      courseId: @courseId
       url: window.location.href
     @sendData data, 'pings'
 

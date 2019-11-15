@@ -7,6 +7,7 @@ CREATE TABLE pings
   ReportInterval UInt16,
   RecodedTime UInt16,
   PageTypeId UInt16,
+  CourseId UInt32,
   Url String
 )
 ENGINE = MergeTree()
