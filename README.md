@@ -34,3 +34,13 @@ Include JS script to your page:
   </script>
 <% end %>
 ```
+
+## Get user statistics
+
+```
+GET /time_spend/:user_id/:from/:to/:type
+
+/time_spend/2/2019-01-01 00:00:00/2019-12-31 23:59:59/2
+```
+
+Returns time in seconds: `{"time":0}`

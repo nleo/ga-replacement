@@ -58,14 +58,14 @@ flushPingsCache = () ->
     pings_cache = []
 
 flushPingsCacheInterval = ()->
-  if (new Date() - lastFlushPingsCacheAt) > 59000
+  if (new Date() - lastFlushPingsCacheAt) > 59000 && pings_cache.length > 0
     flushPingsCache()
 
 setInterval flushPingsCacheInterval, 60000
 
 onExit = () ->
   exit_attempts++
-  if exit_attempts < 2
+  if exit_attempts <= 3
     console.log "Exiting..."
     await flushPingsCache()
     console.log "Exit: done."
@@ -92,9 +92,15 @@ app.post '/pings', (req, res) =>
     flushPingsCache()
   res.send 'OK'
 
+# Returns user spend time in platform in seconds
 app.get '/time_spend/:user_id/:from/:to/:type', auth.connect(basic), (req, res) =>
-  console.log req
-  res.send "Hello from admin area - #{req.user}!`"
+  sql = "select count(*) from pings where UserId = #{req.params.user_id}"
+  sql += " AND CreatedAt >= toDateTime('#{req.params.from}')
+           AND CreatedAt <= toDateTime('#{req.params.to}')"
+  if parseInt(req.params.type) != 0
+    sql += " AND PageTypeId = #{req.params.type}"
+  rows = await clickhouse.query(sql).toPromise()
+  res.json {time: rows[0]['count()']*15}
 
 app.listen port, () =>
   console.log "Analytics service listening on port #{port}!"
