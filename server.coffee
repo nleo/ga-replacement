@@ -16,19 +16,12 @@ clickhouse = new ClickHouse
     username: USER
     password: PASSWORD
   reqParams:
-    hostname: HOST
     ca: fs.readFileSync('ca.pem')
-    port: 8443
-    gzip: true
-    strictSSL: false
-    headers:
-      'X-ClickHouse-User': USER
-      'X-ClickHouse-Key': PASSWORD
 
 clickhouse.query('SELECT now()').stream()
-  .on 'data', () =>
+  .on 'data', (chunk) =>
     console.log 'data'
-    console.log this
+    console.log chunk
   .on 'error', (err) =>
     console.log err
   .on 'end', () =>
