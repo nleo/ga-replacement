@@ -18,14 +18,14 @@ clickhouse = new ClickHouse
   reqParams:
     ca: fs.readFileSync('ca.pem')
 
-clickhouse.query('SELECT now()').stream()
-  .on 'data', (chunk) =>
-    console.log 'data'
-    console.log chunk
-  .on 'error', (err) =>
-    console.log err
-  .on 'end', () =>
-    console.log this
+# clickhouse.query('SELECT now()').stream()
+#   .on 'data', (chunk) =>
+#     console.log 'data'
+#     console.log chunk
+#   .on 'error', (err) =>
+#     console.log err
+#   .on 'end', () =>
+#     console.log this
 
 # process.exit()
 
@@ -34,12 +34,18 @@ cors = require('cors')
 app = express()
 port = 3334
 
+auth = require('http-auth');
+basic = auth.basic
+  realm: "Protected"
+  file: __dirname + "/users.htpasswd"
+
 app.use(cors())
 app.use(express.json());
 app.use(express.static('public'))
 
 pings_cache = []
 lastFlushPingsCacheAt = new Date()
+exit_attempts = 0
 
 flushPingsCache = () ->
   lastFlushPingsCacheAt = new Date()
@@ -58,10 +64,14 @@ flushPingsCacheInterval = ()->
 setInterval flushPingsCacheInterval, 60000
 
 onExit = () ->
-  console.log "Exiting..."
-  await flushPingsCache()
-  console.log "Exit: done."
-  process.exit()
+  exit_attempts++
+  if exit_attempts < 2
+    console.log "Exiting..."
+    await flushPingsCache()
+    console.log "Exit: done."
+    process.exit()
+  else
+    process.exit()
 
 app.get '/', (req, res) =>
   res.send ''
@@ -82,20 +92,24 @@ app.post '/pings', (req, res) =>
     flushPingsCache()
   res.send 'OK'
 
+app.get '/time_spend/:user_id/:from/:to/:type', auth.connect(basic), (req, res) =>
+  console.log req
+  res.send "Hello from admin area - #{req.user}!`"
+
 app.listen port, () =>
   console.log "Analytics service listening on port #{port}!"
 
 # # Начинайте чтение из stdin, чтобы процесс не закрылся
-# process.stdin.resume()
+process.stdin.resume()
 
-# process.on 'exit', onExit
+process.on 'exit', onExit
 
 # # catches ctrl+c event
-# process.on 'SIGINT', onExit
+process.on 'SIGINT', onExit
 
 # # catches "kill pid" (for example: nodemon restart)
-# process.on 'SIGUSR1', onExit
-# process.on 'SIGUSR2', onExit
+process.on 'SIGUSR1', onExit
+process.on 'SIGUSR2', onExit
 
 # # catches uncaught exceptions
-# # process.on 'uncaughtException', onExit
+process.on 'uncaughtException', onExit
