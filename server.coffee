@@ -4,7 +4,7 @@ fs = require('fs')
 require('dotenv').config()
 
 HOST = process.env.DB_HOST
-DB =  process.env.DB
+DB   = process.env.DB
 USER = process.env.DB_USER
 PASSWORD = process.env.DB_PASS
 
@@ -17,17 +17,6 @@ clickhouse = new ClickHouse
     password: PASSWORD
   reqParams:
     ca: fs.readFileSync('ca.pem')
-
-# clickhouse.query('SELECT now()').stream()
-#   .on 'data', (chunk) =>
-#     console.log 'data'
-#     console.log chunk
-#   .on 'error', (err) =>
-#     console.log err
-#   .on 'end', () =>
-#     console.log this
-
-# process.exit()
 
 express = require('express')
 cors = require('cors')
@@ -47,7 +36,7 @@ pings_cache = []
 lastFlushPingsCacheAt = new Date()
 exit_attempts = 0
 
-flushPingsCache = () ->
+flushPingsCache = ()->
   lastFlushPingsCacheAt = new Date()
   console.log 'flushPingsCache started'
   if pings_cache.length > 0
@@ -63,7 +52,7 @@ flushPingsCacheInterval = ()->
 
 setInterval flushPingsCacheInterval, 60000
 
-onExit = () ->
+onExit = ()->
   exit_attempts++
   if exit_attempts <= 3
     console.log "Exiting..."
@@ -89,7 +78,7 @@ app.post '/pings', (req, res) =>
   console.log 'Ping: ', body
   pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId,
     body.courseId, body.url]
-  if pings_cache.length > 3
+  if pings_cache.length > process.env.MAX_CACHED_PINGS
     flushPingsCache()
   res.send 'OK'
 
