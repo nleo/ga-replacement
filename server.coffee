@@ -35,16 +35,27 @@ app.use(express.static('public'))
 pings_cache = []
 lastFlushPingsCacheAt = new Date()
 exit_attempts = 0
+flushPingsCacheLock = false
 
 flushPingsCache = ()->
+  if flushPingsCacheLock
+    console.log('flushPingsCacheLock locked')
+    return
   lastFlushPingsCacheAt = new Date()
   console.log 'flushPingsCache started'
   if pings_cache.length > 0
-    pings_stream = clickhouse.insert('INSERT INTO pings').stream()
-    for ping in pings_cache
-      await pings_stream.writeRow ping
-    await pings_stream.exec()
-    pings_cache = []
+    flushPingsCacheLock = true
+    try
+      pings_stream = clickhouse.insert('INSERT INTO pings').stream()
+      for ping in pings_cache
+        await pings_stream.writeRow ping
+      await pings_stream.exec()
+      pings_cache = []
+    catch error
+      console.log(error)
+    finally
+      flushPingsCacheLock = false
+
 
 flushPingsCacheInterval = ()->
   if (new Date() - lastFlushPingsCacheAt) > 59000 && pings_cache.length > 0
