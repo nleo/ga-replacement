@@ -48,7 +48,7 @@ flushPingsCache = ()->
 
 flushPingsCacheInterval = ()->
   if (new Date() - lastFlushPingsCacheAt) > 59000 && pings_cache.length > 0
-    flushPingsCache()
+    await flushPingsCache()
 
 setInterval flushPingsCacheInterval, 60000
 

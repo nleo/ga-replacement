@@ -12,7 +12,7 @@ CREATE TABLE pings
 )
 ENGINE = MergeTree()
 PARTITION BY (toYYYYMM(CreatedAt), UserId)
-ORDER BY CreatedAt;
+ORDER BY (UserId, CreatedAt);
 
 DROP TABLE IF EXISTS visits;
 
@@ -24,4 +24,4 @@ CREATE TABLE visits
 )
 ENGINE = MergeTree()
 PARTITION BY toYYYYMM(CreatedAt)
-ORDER BY CreatedAt;
+ORDER BY (UserId, CreatedAt);
