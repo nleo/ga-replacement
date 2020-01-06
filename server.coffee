@@ -90,7 +90,7 @@ app.post '/pings', (req, res) =>
   pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId,
     body.courseId, body.url]
   if pings_cache.length > process.env.MAX_CACHED_PINGS
-    flushPingsCache()
+    await flushPingsCache()
   res.send 'OK'
 
 # Returns user spend time in platform in seconds
