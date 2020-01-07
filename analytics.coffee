@@ -1,6 +1,6 @@
 export class Analytics
   constructor: (@baseUrl, @userId, @pageTypeId, @courseId, @debug=false) ->
-    @reportInterval = 3
+    @reportInterval = 30
     @idleTimeout    = 30
     @started = false
     @stopped = false
@@ -81,12 +81,12 @@ export class Analytics
     @clockTimer = setInterval(@clock.bind(this), 1000)
 
   sendData: (data, endpoint) ->
-    fetch "#{@baseUrl}/#{endpoint}", {
+    fetch "#{@baseUrl}/#{endpoint}",
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8'
       },
-      body: JSON.stringify(data) }
+      body: JSON.stringify(data)
 
   reset: ()->
     @clockTime = 0

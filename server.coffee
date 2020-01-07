@@ -103,7 +103,7 @@ app.get '/time_spend/:user_id/:from/:to/:type/:course_id', auth.connect(basic), 
   if parseInt(req.params.course_id) > 0
     sql += " AND CourseId = #{req.params.course_id}"
   rows = await clickhouse.query(sql).toPromise()
-  res.json {time: rows[0]['count()']*15}
+  res.json {time: rows[0]['count()']*30}
 
 app.listen port, () =>
   console.log "Analytics service listening on port #{port}!"
