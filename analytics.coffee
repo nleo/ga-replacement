@@ -106,5 +106,3 @@ export class Analytics
 
   turnOn: ()->
     @turnedOff = false
-
-# a = new Analytics 'http://localhost:3334/reports'

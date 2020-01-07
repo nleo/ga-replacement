@@ -45,14 +45,24 @@ flushPingsCache = ()->
   console.log 'flushPingsCache started'
   if pings_cache.length > 0
     flushPingsCacheLock = true
+    # делаем локальную копию кеша, чтобы, если сохранение будет идти долго,
+    # новые пинги не затёрлись
+    pings_cache_local = pings_cache
+    pings_cache = []
+    pings = []
     try
-      pings_stream = clickhouse.insert('INSERT INTO pings').stream()
-      for ping in pings_cache
-        await pings_stream.writeRow ping
-      await pings_stream.exec()
-      pings_cache = []
+      # clickhouse принимает 100 записей за раз
+      # если вдруг по каким-то причинам мы долго не могли скинуть кеш
+      # и у нас накопилось много записей, то пишем по 100
+      while (pings = pings_cache_local.splice(0, 100)).length > 0
+        pings_stream = clickhouse.insert('INSERT INTO pings').stream()
+        for ping in pings
+          await pings_stream.writeRow ping
+        await pings_stream.exec()
     catch error
       console.log(error)
+      # если ошибка - вернём пинги в общий пул
+      pings_cache = pings.concat(pings_cache_local).concat(pings_cache)
     finally
       flushPingsCacheLock = false
 
