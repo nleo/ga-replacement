@@ -32,9 +32,9 @@ app.use(cors())
 app.use(express.json());
 app.use(express.static('public'))
 
-pings_cache = []
+globalPingsCache = []
 lastFlushPingsCacheAt = new Date()
-exit_attempts = 0
+exitAttempts = 0
 flushPingsCacheLock = false
 
 flushPingsCache = ()->
@@ -43,39 +43,39 @@ flushPingsCache = ()->
     return
   lastFlushPingsCacheAt = new Date()
   console.log 'flushPingsCache started'
-  if pings_cache.length > 0
+  if globalPingsCache.length > 0
     flushPingsCacheLock = true
     # делаем локальную копию кеша, чтобы, если сохранение будет идти долго,
     # новые пинги не затёрлись
-    pings_cache_local = pings_cache
-    pings_cache = []
+    localPings = globalPingsCache
+    globalPingsCache = []
     pings = []
     try
       # clickhouse принимает 100 записей за раз
       # если вдруг по каким-то причинам мы долго не могли скинуть кеш
       # и у нас накопилось много записей, то пишем по 100
-      while (pings = pings_cache_local.splice(0, 100)).length > 0
-        pings_stream = clickhouse.insert('INSERT INTO pings').stream()
+      while (pings = localPings.splice(0, 100)).length > 0
+        pingsStream = clickhouse.insert('INSERT INTO pings').stream()
         for ping in pings
-          await pings_stream.writeRow ping
-        await pings_stream.exec()
+          await pingsStream.writeRow ping
+        await pingsStream.exec()
     catch error
       console.log(error)
       # если ошибка - вернём пинги в общий пул
-      pings_cache = pings.concat(pings_cache_local).concat(pings_cache)
+      globalPingsCache = pings.concat(localPings).concat(globalPingsCache)
     finally
       flushPingsCacheLock = false
 
 
 flushPingsCacheInterval = ()->
-  if (new Date() - lastFlushPingsCacheAt) > 59000 && pings_cache.length > 0
+  if (new Date() - lastFlushPingsCacheAt) > 59000 && globalPingsCache.length > 0
     await flushPingsCache()
 
 setInterval flushPingsCacheInterval, 60000
 
 onExit = ()->
-  exit_attempts++
-  if exit_attempts <= 3
+  exitAttempts++
+  if exitAttempts <= 3
     console.log "Exiting..."
     await flushPingsCache()
     console.log "Exit: done."
@@ -97,9 +97,9 @@ app.post '/visits', (req, res) =>
 app.post '/pings', (req, res) =>
   body = req.body
   console.log 'Ping: ', body
-  pings_cache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId,
+  globalPingsCache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId,
     body.courseId, body.url]
-  if pings_cache.length > process.env.MAX_CACHED_PINGS
+  if globalPingsCache.length > process.env.MAX_CACHED_PINGS
     await flushPingsCache()
   res.send 'OK'
 
