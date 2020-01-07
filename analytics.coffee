@@ -1,6 +1,10 @@
+# Свой сервис аналитики на замену Google Analytics
+# Скрипт трекает активность пользователя и отправляет данные на наши сервера
+
 export class Analytics
   constructor: (@baseUrl, @userId, @pageTypeId, @courseId, @debug=false) ->
     @reportInterval = 30
+    # @reportInterval = 3 # for dev
     @idleTimeout    = 30
     @started = false
     @stopped = false
@@ -87,7 +91,8 @@ export class Analytics
         'Content-Type': 'application/json;charset=utf-8'
       },
       body: JSON.stringify(data)
-
+    .catch (error) =>
+      console.log('Analytics service unavailable:', error)
   reset: ()->
     @clockTime = 0
     @started = false
