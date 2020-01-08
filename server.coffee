@@ -105,15 +105,15 @@ app.post '/pings', (req, res) =>
 
 # Returns user spend time in platform in seconds
 app.get '/time_spend/:user_id/:from/:to/:type/:course_id', auth.connect(basic), (req, res) =>
-  sql = "select count(*) from pings where UserId = #{req.params.user_id}"
-  sql += " AND CreatedAt >= toDateTime('#{req.params.from}')
-           AND CreatedAt <= toDateTime('#{req.params.to}')"
+  sql = "SELECT SUM(timeInSeconds) FROM daily_time_spent WHERE UserId = #{req.params.user_id}"
+  sql += " AND Day >= toDateTime('#{req.params.from}')
+           AND Day <= toDateTime('#{req.params.to}')"
   if parseInt(req.params.type) > 0
     sql += " AND PageTypeId = #{req.params.type}"
   if parseInt(req.params.course_id) > 0
     sql += " AND CourseId = #{req.params.course_id}"
   rows = await clickhouse.query(sql).toPromise()
-  res.json {time: rows[0]['count()']*30}
+  res.json {time: Object.values(rows[0])[0]}
 
 app.listen port, () =>
   console.log "Analytics service listening on port #{port}!"
