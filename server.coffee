@@ -100,6 +100,8 @@ app.post '/pings', (req, res) =>
   globalPingsCache.push [new Date(), body.userId, body.reportInterval, body.time, body.pageTypeId,
     body.courseId, body.url]
   if globalPingsCache.length >= process.env.MAX_CACHED_PINGS && (new Date() - lastFlushPingsCacheAt) > 5000
+    # здесь await не нужен, т.к. нам не нужны результаты вычисления этой функции
+    # мы их здесь не используем и она вообще задумана, что бы выполняться в "фоне", асинхронно
     flushPingsCache()
   res.send 'OK'
 
