@@ -107,13 +107,16 @@ app.post '/pings', (req, res) =>
 
 # Returns user spend time in platform in seconds
 app.get '/time_spend/:user_id/:from/:to/:type/:course_id', auth.connect(basic), (req, res) =>
-  sql = "SELECT SUM(timeInSeconds) FROM daily_time_spent WHERE UserId = #{req.params.user_id}"
-  sql += " AND Day >= toDateTime('#{req.params.from}')
-           AND Day <= toDateTime('#{req.params.to}')"
-  if parseInt(req.params.type) > 0
-    sql += " AND PageTypeId = #{req.params.type}"
-  if parseInt(req.params.course_id) > 0
-    sql += " AND CourseId = #{req.params.course_id}"
+  # удалить всё кроме цифр, пробела, двоеточия и дефиса
+  from = req.params.from.replace(/[^\d :-]/g, '')
+  to   = req.params.to.replace(/[^\d :-]/g, '')
+  sql = "SELECT SUM(timeInSeconds) FROM daily_time_spent WHERE UserId = #{Number(req.params.user_id)}"
+  sql += " AND Day >= toDateTime('#{from}')
+           AND Day <= toDateTime('#{to}')"
+  if (type = parseInt(req.params.type)) > 0
+    sql += " AND PageTypeId = #{type}"
+  if (courseId = parseInt(req.params.course_id)) > 0
+    sql += " AND CourseId = #{courseId}"
   rows = await clickhouse.query(sql).toPromise()
   res.json {time: Object.values(rows[0])[0]}
 
