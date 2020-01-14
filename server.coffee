@@ -23,11 +23,6 @@ cors = require('cors')
 app = express()
 port = 3334
 
-auth = require('http-auth');
-basic = auth.basic
-  realm: "Protected"
-  file: __dirname + "/users.htpasswd"
-
 app.use(cors())
 app.use(express.json());
 app.use(express.static('public'))
@@ -106,19 +101,20 @@ app.post '/pings', (req, res) =>
   res.send 'OK'
 
 # Returns user spend time in platform in seconds
-app.get '/time_spend/:user_id/:from/:to/:type/:course_id', auth.connect(basic), (req, res) =>
+app.get '/time-spent', (req, res) =>
   # удалить всё кроме цифр, пробела, двоеточия и дефиса
-  from = req.params.from.replace(/[^\d :-]/g, '')
-  to   = req.params.to.replace(/[^\d :-]/g, '')
-  sql = "SELECT SUM(timeInSeconds) FROM daily_time_spent WHERE UserId = #{Number(req.params.user_id)}"
-  sql += " AND Day >= toDateTime('#{from}')
-           AND Day <= toDateTime('#{to}')"
-  if (type = parseInt(req.params.type)) > 0
+  from = req.query.from.replace(/[^\d :-]/g, '')
+  to   = req.query.to.replace(/[^\d :-]/g, '')
+  sql  = "SELECT SUM(timeInSeconds) AS time FROM daily_time_spent
+          WHERE UserId = #{Number(req.query.user_id)}
+          AND Day >= toDateTime('#{from}')
+          AND Day <= toDateTime('#{to}')"
+  if (type = parseInt(req.query.type)) > 0
     sql += " AND PageTypeId = #{type}"
-  if (courseId = parseInt(req.params.course_id)) > 0
+  if (courseId = parseInt(req.query.course_id)) > 0
     sql += " AND CourseId = #{courseId}"
   rows = await clickhouse.query(sql).toPromise()
-  res.json {time: Object.values(rows[0])[0]}
+  res.json {time: rows[0].time}
 
 app.listen port, () =>
   console.log "Analytics service listening on port #{port}!"
